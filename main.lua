@@ -586,7 +586,21 @@ function Library:CreateWindow(name)
     return Window
 end
 
-return Library
-end
+-- Usage Example:
+-- local Window = Library:CreateWindow("Hajaz Hub")
+-- local CombatTab = Window:AddTab("Combat")
+-- local VisualsTab = Window:AddTab("Visuals")
 
-return NetErrrorGUI
+-- CombatTab:AddButton("Aimbot", function()
+--     Library:Notify("Combat", "Aimbot активирован!", 2)
+-- end)
+
+-- local Toggle = CombatTab:AddToggle("ESP", false, function(state)
+--     Library:Notify("Combat", "ESP: " .. (state and "ON" or "OFF"), 2)
+-- end)
+
+-- local Slider = CombatTab:AddSlider("FOV", 50, 300, 100, function(value)
+--     Library:Notify("Combat", "FOV установлен: " .. value, 1)
+-- end)
+
+return Library
