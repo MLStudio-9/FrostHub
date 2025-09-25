@@ -1,4 +1,4 @@
--- Hajaz Hub GUI Library - Complete Version
+-- Hajaz Hub GUI Library - FIXED VERSION
 local Library = {}
 
 -- Services
@@ -96,6 +96,7 @@ function Library:CreateWindow(name)
     
     -- GUI
     local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "HajazHub"
     ScreenGui.Parent = game.CoreGui
 
     local MainFrame = Instance.new("Frame")
@@ -144,7 +145,7 @@ function Library:CreateWindow(name)
     ContentList.Padding = UDim.new(0, 5)
     ContentList.Parent = ContentFrame
 
-    -- Add Button
+    -- Add Button function
     function Window:AddButton(name, callback)
         local Button = Instance.new("TextButton")
         Button.Size = UDim2.new(1, 0, 0, 30)
@@ -159,7 +160,7 @@ function Library:CreateWindow(name)
         return Button
     end
 
-    -- Add Toggle
+    -- Add Toggle function
     function Window:AddToggle(name, default, callback)
         local ToggleFrame = Instance.new("Frame")
         ToggleFrame.Size = UDim2.new(1, 0, 0, 30)
@@ -194,7 +195,7 @@ function Library:CreateWindow(name)
         return {Value = state}
     end
 
-    -- Add Slider
+    -- Add Slider function
     function Window:AddSlider(name, min, max, default, callback)
         local SliderFrame = Instance.new("Frame")
         SliderFrame.Size = UDim2.new(1, 0, 0, 50)
@@ -289,8 +290,8 @@ function Library:CreateWindow(name)
     end)
 
     -- Animate in
-    self:SlideIn(MainFrame, "left", 0.5)
-    self:Notify("Hajaz Hub", "Готов к работе!", 3)
+    Library:SlideIn(MainFrame, "left", 0.5)
+    Library:Notify("Hajaz Hub", "Готов к работе!", 3)
 
     return Window
 end
