@@ -1,53 +1,197 @@
-
--- Скрипт для телепортации всех игроков к себе при нажатии L
+-- Скрипт для автоматической телепортации игроков одной команды
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
+-- Настройки
+local teleporting = false
+local connection = nil
+local checkTeam = true -- true = телепортировать только свою команду, false = всех
+
 -- Функция телепортации
-local function teleportAllToMe()
+local function teleportPlayers()
     if not LocalPlayer.Character then return end
     
     local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if not root then return end
     
     local targetPos = root.Position
+    local localTeam = LocalPlayer.Team
     
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character then
+            -- Проверяем команду если включена проверка
+            if checkTeam then
+                if player.Team ~= localTeam then
+                    continue -- Пропускаем игроков из других команд
+                end
+            end
+            
             local char = player.Character
             local hrp = char:FindFirstChild("HumanoidRootPart")
             if hrp then
                 -- Телепортируем с небольшим случайным смещением
                 hrp.CFrame = CFrame.new(targetPos + Vector3.new(
-                    math.random(-3, 3),
+                    math.random(-4, 4),
                     3,
-                    math.random(-3, 3)
+                    math.random(-4, 4)
                 ))
             end
         end
     end
-    
-    print("Все игроки телепортированы к вам!")
 end
 
--- Обработка нажатия клавиши
-local connection
-connection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+-- Функция переключения режима
+local function toggleTeleport()
+    teleporting = not teleporting
+    
+    if teleporting then
+        -- Включаем автоматическую телепортацию
+        connection = RunService.Heartbeat:Connect(teleportPlayers)
+        print("🟢 Авто-телепортация ВКЛЮЧЕНА")
+        if checkTeam then
+            print("📋 Режим: только моя команда")
+        else
+            print("🌍 Режим: все игроки")
+        end
+    else
+        -- Выключаем
+        if connection then
+            connection:Disconnect()
+            connection = nil
+        end
+        print("🔴 Авто-телепортация ВЫКЛЮЧЕНА")
+    end
+end
+
+-- Функция смены режима команды
+local function toggleTeamMode()
+    checkTeam = not checkTeam
+    if checkTeam then
+        print("📋 Режим: телепортировать только мою команду")
+    else
+        print("🌍 Режим: телепортировать ВСЕХ игроков")
+    end
+end
+
+-- Обработка нажатия клавиш
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     
     if input.KeyCode == Enum.KeyCode.L then
-        teleportAllToMe()
+        toggleTeleport()
+    elseif input.KeyCode == Enum.KeyCode.T then
+        toggleTeamMode()
     end
 end)
 
+-- Создаем GUI для отображения статуса
+local function createGUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    local Frame = Instance.new("Frame")
+    local StatusText = Instance.new("TextLabel")
+    local ModeText = Instance.new("TextLabel")
+    local InfoText = Instance.new("TextLabel")
+    
+    ScreenGui.Parent = game.CoreGui
+    ScreenGui.Name = "TeleportGUI"
+    
+    Frame.Parent = ScreenGui
+    Frame.Size = UDim2.new(0, 250, 0, 120)
+    Frame.Position = UDim2.new(0, 10, 0, 10)
+    Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Frame.BackgroundTransparency = 0.3
+    Frame.BorderSizePixel = 0
+    
+    StatusText.Parent = Frame
+    StatusText.Size = UDim2.new(1, 0, 0, 30)
+    StatusText.Position = UDim2.new(0, 0, 0, 10)
+    StatusText.BackgroundTransparency = 1
+    StatusText.Text = "Статус: 🔴 ВЫКЛ"
+    StatusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+    StatusText.Font = Enum.Font.SourceSansBold
+    StatusText.TextSize = 18
+    StatusText.TextXAlignment = Enum.TextXAlignment.Left
+    StatusText.PaddingLeft = UDim.new(0, 10)
+    
+    ModeText.Parent = Frame
+    ModeText.Size = UDim2.new(1, 0, 0, 30)
+    ModeText.Position = UDim2.new(0, 0, 0, 40)
+    ModeText.BackgroundTransparency = 1
+    ModeText.Text = "Режим: Моя команда"
+    ModeText.TextColor3 = Color3.fromRGB(200, 200, 200)
+    ModeText.Font = Enum.Font.SourceSans
+    ModeText.TextSize = 16
+    ModeText.TextXAlignment = Enum.TextXAlignment.Left
+    ModeText.PaddingLeft = UDim.new(0, 10)
+    
+    InfoText.Parent = Frame
+    InfoText.Size = UDim2.new(1, 0, 0, 40)
+    InfoText.Position = UDim2.new(0, 0, 0, 70)
+    InfoText.BackgroundTransparency = 1
+    InfoText.Text = "L - вкл/выкл\nT - сменить режим"
+    InfoText.TextColor3 = Color3.fromRGB(150, 150, 150)
+    InfoText.Font = Enum.Font.SourceSans
+    InfoText.TextSize = 14
+    InfoText.TextXAlignment = Enum.TextXAlignment.Left
+    InfoText.PaddingLeft = UDim.new(0, 10)
+    
+    -- Функция обновления GUI
+    local function updateGUI()
+        if teleporting then
+            StatusText.Text = "Статус: 🟢 ВКЛ"
+            StatusText.TextColor3 = Color3.fromRGB(100, 255, 100)
+        else
+            StatusText.Text = "Статус: 🔴 ВЫКЛ"
+            StatusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+        end
+        
+        if checkTeam then
+            ModeText.Text = "Режим: Моя команда"
+        else
+            ModeText.Text = "Режим: Все игроки"
+        end
+    end
+    
+    -- Обновляем GUI при изменениях
+    game:GetService("RunService").Heartbeat:Connect(updateGUI)
+    
+    return ScreenGui
+end
+
+-- Создаем GUI
+createGUI()
+
 -- Сообщение об успешной загрузке
-print("Скрипт активирован! Нажмите L чтобы телепортировать всех игроков к себе")
+print([[
+🎮 Скрипт телепортации загружен!
+
+Управление:
+• L - Включить/выключить авто-телепортацию
+• T - Переключить режим (моя команда/все игроки)
+
+Текущий режим: ]] .. (checkTeam and "Только моя команда" or "Все игроки"))
 
 -- Функция для выгрузки скрипта
 getgenv().StopTeleportScript = function()
     if connection then
         connection:Disconnect()
-        print("Скрипт остановлен")
+        connection = nil
     end
+    teleporting = false
+    
+    -- Удаляем GUI
+    if game.CoreGui:FindFirstChild("TeleportGUI") then
+        game.CoreGui.TeleportGUI:Destroy()
+    end
+    
+    print("Скрипт остановлен")
 end
+
+-- Автоматическая остановка при выгрузке
+game:GetService("Players").PlayerRemoving:Connect(function(player)
+    if player == LocalPlayer then
+        getgenv().StopTeleportScript()
+    end
+end)
