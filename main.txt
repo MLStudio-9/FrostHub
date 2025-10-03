@@ -1,1 +1,53 @@
 
+-- Скрипт для телепортации всех игроков к себе при нажатии L
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Функция телепортации
+local function teleportAllToMe()
+    if not LocalPlayer.Character then return end
+    
+    local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    
+    local targetPos = root.Position
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local char = player.Character
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                -- Телепортируем с небольшим случайным смещением
+                hrp.CFrame = CFrame.new(targetPos + Vector3.new(
+                    math.random(-3, 3),
+                    3,
+                    math.random(-3, 3)
+                ))
+            end
+        end
+    end
+    
+    print("Все игроки телепортированы к вам!")
+end
+
+-- Обработка нажатия клавиши
+local connection
+connection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.L then
+        teleportAllToMe()
+    end
+end)
+
+-- Сообщение об успешной загрузке
+print("Скрипт активирован! Нажмите L чтобы телепортировать всех игроков к себе")
+
+-- Функция для выгрузки скрипта
+getgenv().StopTeleportScript = function()
+    if connection then
+        connection:Disconnect()
+        print("Скрипт остановлен")
+    end
+end
